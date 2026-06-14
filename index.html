@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>★10 創作段位ジェネレーター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 1rem;
+            color: #333;
+        }
+        .main-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 1rem;
+        }
+        .excluded-list-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.15), 0 4px 6px -2px rgba(0,0,0,0.08);
+            text-align: left;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 1rem;
+        }
+        .excluded-list-container h2 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 1rem;
+            text-align: center;
+            border-bottom: 2px solid #cbd5e0;
+            padding-bottom: 0.5rem;
+        }
+        #excludedSongsUl {
+            list-style: none;
+            padding: 0;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        #excludedSongsUl li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            background-color: #f8fafc;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        #excludedSongsUl li .song-title {
+            flex-grow: 1;
+            margin-right: 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .remove-excluded-button {
+            background-color: #fca5a5;
+            color: #7f1d1d;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            border: 1px solid #fecaca;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .remove-excluded-button:hover { background-color: #f87171; color: white; }
+
+        .course-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .song-slot {
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f4f8;
+            border: 2px solid #cbd5e0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .song-slot-header {
+            background-color: #4a5568;
+            color: white;
+            font-weight: bold;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .diff-select {
+            color: #333;
+            background-color: #fff;
+            border: 1px solid #cbd5e0;
+            border-radius: 0.25rem;
+            padding: 0.125rem 0.25rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .song-display {
+            min-height: 3.5rem;
+            padding: 0.75rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.125rem;
+            color: #2c3e50;
+            font-weight: 700;
+            font-family: 'Roboto', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            position: relative;
+        }
+        .song-display.rolling::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(45deg, #e0e7ff, #e0e7ff 10px, #c7d2fe 10px, #c7d2fe 20px);
+            animation: rolling-bg 0.2s linear infinite;
+            opacity: 0.3;
+        }
+        @keyframes rolling-bg {
+            0% { background-position: 0 0; }
+            100% { background-position: 28px 0; }
+        }
+        .exclude-btn-container {
+            background-color: #e2e8f0;
+            padding: 0.25rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .exclude-song-btn {
+            background-image: linear-gradient(to right, #d946ef 0%, #db2777 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .conditions-panel {
+            background-color: #fff;
+            border: 3px solid #e2e8f0;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .conditions-header {
+            background: linear-gradient(to right, #e11d48, #be123c);
+            color: #fff;
+            font-weight: 900;
+            font-size: 1.25rem;
+            padding: 0.5rem;
+            letter-spacing: 0.1em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .conditions-sub {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 0.25rem;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .condition-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px dashed #cbd5e0;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .condition-item:last-child {
+            border-bottom: none;
+        }
+        .condition-label {
+            color: #1e293b;
+        }
+        .condition-value {
+            color: #e11d48;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1.25rem;
+        }
+        .dynamic-msg {
+            background-color: #fdf2f8;
+            color: #be185d;
+            font-size: 0.75rem;
+            padding: 0.5rem;
+            text-align: center;
+            font-weight: bold;
+            border-top: 2px solid #fbcfe8;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            background-color: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .target-dan-select {
+            padding: 0.25rem 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 0.25rem;
+            border: 2px solid #94a3b8;
+            color: #334155;
+            cursor: pointer;
+        }
+        .button {
+            background-image: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            font-weight: 700;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 300px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .button:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(47, 128, 237, 0.4), 0 4px 6px -2px rgba(47, 128, 237, 0.2);
+        }
+        .button:active:not(:disabled) {
+            transform: translateY(0px) scale(0.98);
+        }
+        .button:disabled {
+            background-image: linear-gradient(to right, #9ca3af 0%, #6b7280 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .small-button {
+            background-image: linear-gradient(to right, #059669 0%, #a3e635 100%);
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+            width: auto;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+        }
+        .filter-header {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            margin-bottom: 0.75rem;
+        }
+        .filter-header > div {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: space-around;
+        }
+        .filter-container legend {
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 1.125rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 2px solid #718096;
+            text-align: center;
+            width: 100%;
+        }
+        #genreCheckboxContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+        .genre-checkbox-item {
+            display: flex;
+            align-items: center;
+            background-color: #fff;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .genre-checkbox-item input[type="checkbox"] {
+            margin-right: 0.5rem;
+            width: 1.125rem;
+            height: 1.125rem;
+            accent-color: #4f46e5;
+            cursor: pointer;
+        }
+        .genre-checkbox-item label {
+            font-size: 0.875rem;
+            color: #374151;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        #statusMessage {
+            color: #e53e3e;
+            font-weight: bold;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            min-height: 1.25rem;
+        }
+
+        @media (min-width: 640px) {
+            .main-container { padding: 2rem; }
+            h1 { font-size: 1.75rem; }
+            .filter-header { flex-direction: row; justify-content: space-between; align-items: center; }
+            .filter-header > div { margin-top: 0; }
+            .filter-container legend { text-align: left; width: auto; }
+            #genreCheckboxContainer { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1>★10 創作段位ジェネレーター</h1>
+
+        <fieldset class="filter-container">
+            <div class="filter-header">
+                <legend>全体フィルター (共通設定)</legend>
+                <div>
+                    <button id="selectAllButton" class="button small-button">すべて選択</button>
+                    <button id="deselectAllButton" class="button small-button" style="background-image: linear-gradient(to right, #ef4444 0%, #f97316 100%);">すべて解除</button>
+                </div>
+            </div>
+            <div id="genreCheckboxContainer"></div>
+        </fieldset>
+
+        <div class="course-container">
+            <div class="song-slot">
+                <div class="song-slot-header">
+                    <span>1曲目</span>
+                    <select class="diff-select" id="diffSelect1">
+                        <option value="FILTER">フィルター設定に従う</option>
+                    </select>
+                </div>
+                <div id="songDisplay1" class="song-display">---</div>
+                <div class="exclude-btn-container" style="display: none;" id="excludeContainer1">
+                    <button class="exclude-song-btn" data-slot="1">この曲を除外</button>
+                </div>
+            </div>
+            <div class="song-slot">
+                <div class="song-slot-header">
+                    <span>2曲目</span>
+                    <select class="diff-select" id="diffSelect2">
+                        <option value="FILTER">フィルター設定に従う</option>
+                    </select>
+                </div>
+                <div id="songDisplay2" class="song-display">---</div>
+                <div class="exclude-btn-container" style="display: none;" id="excludeContainer2">
+                    <button class="exclude-song-btn" data-slot="2">この曲を除外</button>
+                </div>
+            </div>
+            <div class="song-slot">
+                <div class="song-slot-header">
+                    <span>3曲目</span>
+                    <select class="diff-select" id="diffSelect3">
+                        <option value="FILTER">フィルター設定に従う</option>
+                    </select>
+                </div>
+                <div id="songDisplay3" class="song-display">---</div>
+                <div class="exclude-btn-container" style="display: none;" id="excludeContainer3">
+                    <button class="exclude-song-btn" data-slot="3">この曲を除外</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-row">
+            <label for="targetDanSelect" style="font-weight: bold; color: #475569;">想定段位を選択：</label>
+            <select id="targetDanSelect" class="target-dan-select">
+                <option value="十段">十段</option>
+                <option value="玄人">玄人</option>
+                <option value="名人">名人</option>
+                <option value="超人">超人</option>
+                <option value="達人">達人</option>
+            </select>
+        </div>
+
+        <div id="conditionsPanel" class="conditions-panel">
+            <div class="conditions-header" id="conditionsTitle">段位 合格条件</div>
+            <div class="conditions-sub">
+                <span>【3曲の合計】</span>
+                <span id="baseDifficultyDisplay" style="color: #64748b; font-weight: normal;"></span>
+            </div>
+            <div class="condition-item">
+                <span class="condition-label">魂ゲージ</span>
+                <span class="condition-value" id="condGauge">---</span>
+            </div>
+            <div class="condition-item">
+                <span class="condition-label">可の数</span>
+                <span class="condition-value" id="condKa">---</span>
+            </div>
+            <div class="condition-item">
+                <span class="condition-label">不可の数</span>
+                <span class="condition-value" id="condFuka">---</span>
+            </div>
+            <div id="dynamicMessage" class="dynamic-msg" style="display: none;"></div>
+        </div>
+
+        <div id="statusMessage"></div>
+
+        <button id="generateButton" class="button">
+            段位を作成する！
+        </button>
+    </div>
+
+    <div class="excluded-list-container" id="excludedListSection" style="display: none;">
+        <h2>除外リスト</h2>
+        <ul id="excludedSongsUl"></ul>
+        <p id="noExcludedSongsMessage" style="text-align:center; color: #6b7280; margin-top:1rem;">除外された曲はありません。</p>
+    </div>
+
+    <script>
+        const rawSongDataByGenre = {
+          "SS": `Infinite Rebellion\n彁（裏）\nCRUXNAUT\nThe Future of the 太鼓ドラム（裏）\n神竜 ～Shinryu～（裏）\n憎悪と醜悪の花束（裏）\nダーク・エクス・マキナ♡\n第六天魔王（表）\n第六天魔王（裏）\nダンガンノーツ（裏）\nDestination 2F29\nドンカマ2000\n23時54分、陽の旅路へのプレリュード（裏）\nVixtory（裏）\nvs.VIGVANGS（裏）\npoxei♦DOON\n幽玄ノ乱\nRough: CHA0Z`,
+          "S+": `!!!カオスタイム!!!\n†††カオスタイム the DARK†††\nCalamity Fortune（裏）\n業 -善なる神とこの世の悪について-（裏）\n最果の魔法使い（裏）\nsiren's eye\n疾風怒濤（裏）\nCentral Dogma Pt.1（裏）\n魑魅魍魎\nとける（裏）\nトロいか2000\nラ・モレーナ・クモナイ（裏）\nRAGING FIRE（裏）\nアンリミテッドゲームズ（裏）\nEmma（裏）\nCUT! into the FUTURE（裏）\n刻竜 ～Kokuryu～（裏）\n!!!チルノのパーフェクトさんすうタイム!!!\nまださいたま2000\n4+1のそれぞれの未来（裏）`,
+          "S": `オペレート・ミー（裏）\n彁（表）\n仮想現実のテレスコープ（裏）\nCoquette\nSynthesis.（裏）\nスーハー2000\n続・〆ドレー2000\nそして勇者は眠りにつく（裏）\nTaiko Drum Monster（裏）\nChallengers\n≠ＭＭ\nHurtling Boys\n初音ミクの消失‐劇場版‐（裏）\n星屑ストラック（裏）\nLightning Boys（裏）\nLδchesis（裏）\nλ7708\nわら得る2000\nXa（裏）\nExtreme End（裏）\n狂瀾怒濤（裏）\n氷竜～Kooryu～（裏）\nGenesis Ray（裏）\n双竜ノ乱\nたいこの2000\nチャーリーダッシュ！\nNosferatu（裏）\nPOLARiSNAUT\nマルトーアンフェール（裏）\nモノクロボイス（裏）\nUFO Swingin'`,
+          "A+": `アムピト◇リーテー\nouroboros -twin stroke of the end-\nEXRiXiS（裏）\nχ談\nカラフル\n彼は誰時の誘惑（裏）\nココドコ？多分ドッカ島！（裏）\nコネクトカラーズ\nGORI × GORI × SafaRI（裏）\n万戈イム－一ノ十\n青天の黎明\nCentral Dogma Pt.2\nTaiko Drum Monster（表）\nDEBSTEP!\nDreadnought（裏）\nDon't Stop the Game\nHARDCOREノ心得\n幕末維新譚\n†バチ!ムチ!?マッスルキングダム†\nバブル・リップ・レイヴ・マシン\nHello, Worldooon!!（裏）\nパン vs ごはん！ 大決戦！（裏）\nピッチフェイダ（裏）\nfor Q（裏）\nプチポチ\nBehemoth\nまるくてはやくてすさまじいリズム\nモノクロームユートピア\nラパスの虹（裏）\n赤と白薔薇の魔女\nあめふりのロンド（裏）\nON SAY GO SAY（裏）\nカルメン組曲 一番終曲（裏）\nさよならワーリャ（裏）\n森羅万象\nデッド・オア・ダイ\n23時54分、陽の旅路へのプレリュード（表）\nにゃーにゃーにゃー\nメタナイトの逆襲メドレー（裏）\n8OROCHI（裏）`,
+          "A": `哀 want U\n蒼鷺之火（裏）\n或ル不和\nVERTeX\n美しく忙しきドナウ（裏）\nウルトラマンX（裏）\n郢曲／暁闇\nAgent Hustle & Dr. Hassle（表）\nGERBERA\nCHAOTiC BATTLE\n雲間を游ぐ\nThe Future of the 太鼓ドラム（表）\nSAVAGE DELIGHT\n〆ドレー2000\n重金属フューギティブ\nXevel\n其方、激昂\n超絶技巧系少女\nテトラリュトモスフォビア\n天泣の律\n転生〈TENSEI〉-喜与志が待つ強者-（裏）\nToon Town's Toys' Tune\nナイトメア・サバイバー（裏）\nBATTLE NO.1\nHoney Heartbeat ～10 Stars Mix～（裏）\nParousia\nパン vs ごはん！ 大決戦！（表）\nvs.VIGVANGS（表）\nMood Swing（裏）\nもぺもぺ\n螺旋周回軌道（裏）\nLECIEL GLISSANDO\nLUNATiC CiRCUiT\n冷凍庫CJ ～嗚呼面太鼓ブラザーズ～\nARMAGEΔDON\nUnwelcome School (MRM REMIX)（裏）\nIrregular Clock（裏）\nEterNal Ring\n懐中庭園を持つ少女\n絡繰廻廊\nCaribbean Knight\nGIGALODOON（裏）\n鼓立あおはる学園校歌\n束ね糸\nチルノのパーフェクトさんすう教室➈周年バージョン（裏）\n儚姫は原初に舞う（裏）\nひよこ鑑定士さん\nFLOWER（裏）\nBLAZING VORTEX（裏）\nPlayer's High`,
+          "B": `ANiMA\nAltale（裏）\nAleph-0\nUNDEAD HEART(怒りのWarriors)\nイオシス秋の爆食祭2004\n怒槌\nOK I’m blue rat\nKAGEKIYO（裏）\nCUT! into the FUTURE（表）\n極圏\n沓の子を打つ（裏）\nクラポルポルスカ\nGoldfish City\nGot more raves?（裏）\n秋竜 ～Shiuryu～（裏）\n疾風怒濤（表）\n承認欲Q\nSingularity Game\n晨星ト鵺\nSUPERNOVA（裏）\nStick Trick ShowTime!!\n閃光天舞\nSoulStone -闇喰イサァカス団-\nSORA-VII シグナスウォール\n月読命\n電脳幻夜の星言詠\nトイマチック☆パレード!!\nDoom Noiz\nValsqotch\nHello, Mr.JOKER\n人のお金で焼肉を食したい！（裏）\nFUJIN Rumble\nHelp me, さいたま2000!!\nまたさいたま2000\n三瀬川乱舞（裏）\nメカデス。（裏）\nめためた☆ゆにば～すっ！（裏）\nモノクロボイス（表）\nRe：End of a Dream（裏）\n竜と黒炎の姫君（裏）\n練習曲Op.10-4（裏）\nRotter Tarmination（裏）\n六本の薔薇と采の歌（裏）\nWhat's in the box?\nあなたとトゥラッタッタ♪（裏）\nAragami\n案山子姫 -Princess Scarecrow-（裏）\nGarakuta Doll Play（裏）\nカラフルボイス（裏）\nCalculator\n気焔万丈神楽\nKill My Fortune（裏）\nゲゲゲの鬼太郎（裏）\n刻竜 ～Kokuryu～（表）\n神竜 ～Shinryu～（表）\nScarlet Lance\n星河一天\n憎悪と醜悪の花束（表）\nDestr0yer（裏）\nドドドドドンだフル！（裏）\nはたラク2000\nVixtory（表）\n秘ナルメジェドノ悲ナル憂鬱\nメタルホーク BGM1\nmemoria ficta\nYOU're our HEROES\n燎原ノ舞`,
+          "C": `愛と浄罪の森\nアサガオ\nAbyss of hell（裏）\n天照\nIgnis Danse\nIllusion Flare\nうちゅうひこうし冒険譚\nex寅 Trap!!\nEvidence of evil\nカラ鞠の花\nギガンティックO.T.N（裏）\nきゅうくらりん（裏）\n共奏鼓祭（裏）\nクラシックメドレー（冬休み編）\nChronomia\n弧\nゴーストマスク\nゴッドソング（裏）\nGod Ray\n鼓舞曲「閻魔」\n潮騒205号SSS線\n紫煌ノ乱\n蛇鉄\n須佐之男\nSpectral Rider\nSoulway\nD's Adventure Note\nD絶対！SAMURAIインザレイン（裏）\nてんぢく2000\n弩蚊怒夏\nとける（表）\nDogbite\nDoppelgangers（裏）\n白鳥の湖～still a duckling～（裏）\nハンロック\n平等院鳳凰ドン vs 鳥獣戯カッ（裏）\nヘイラ（裏）\nペットショップ大戦\nMagiCatz\nミュージック・リボルバー（裏）\nYOU're your HERO\n六華の舞\nwonderful ROUTINE\nあの日出会えたキセキ\nアンリミテッドゲームズ（表）\nGloria\n濃紅\nココロボ\nCentral Dogma Pt.1（表）\n夏祭り / ジッタリン・ジン（裏）\nPurple Rose Fusion\nみんなのうた\nMEGALOVANIA（裏）\n4+1のそれぞれの未来\nLightning Boys（表）`,
+          "D": `アキバ20XX\nAloft in the wind（裏）\nイガク（裏）\n頂\nINSPION\nウィーアー！（裏）\nwaitin' for u\nAngel Halo\nオーバード（裏）\nオーブの祈り\nOshama Scramble!（裏）\nGIGALODOON（表）\nきたさいたま2000\nキャラメル・ジャンキヰ\nSurf Zapping\nSilent Jealousy（裏）\nセイクリッド ルイン（裏）\n零の交響曲（裏）\nそつおめしき2ばん\nZOMEKI THUNDER\n十露盤2000\nDiving Drive\nダンガンノーツ（表）\n天下統一録\nドドンガド～ン（裏）\nNo Gravity\nノるどん2000\nVICTORIA\nピコピコ ルイン（裏）\nVIVIVIVID\nFREEDOM DiVE↓\nVenomous（裏）\n星屑ストラック（表）\n8OROCHI（表）\nYOAKE\n夜桜謝肉祭（裏）\nラヴ♡スパイス♡ライクユー!!!\nLibera Ray\n詩謳兎揺蕩兎\nExtreme End\nゴーゴー・キッチン（裏）\n最終鬼畜妹フランドール・S\nタイコタイム（裏）\nUMAのフォーストレーニ千グ 【BPM150編】（裏）\n乱数調整のリバースシンデレラ（裏）`,
+          "E": `R.I.\n蒼の旋律（裏）\n朱の旋律\nEkiBEN2000\nKa.Ma.Se（裏）\nKamikaze Remix\nCalamity Fortune（表）\nキューティー☆デモニック☆魔人エモ!!\nさちさちにしてあげる♪（裏）\nスーパーD＆D ～完全にリードしてアイマイミー～\nSUPERNOVA（表）\nSstTAarR*\nタイコロール\nタベルナ2000\n儚姫は原初に舞う（表）\nヒバナ（裏）\nBlessed Bouquet Buskers\nよーいドン！\nそつおめしき\n初音ミクの激唱（表）\n初音ミクの激唱（裏）\nBlack Rose Apostle（表）\nBlack Rose Apostle（裏）\nマツヨイナイトバグ（裏）\nUMAのフォーストレーニ千グ 【BPM240編】（表）\nUMAのフォーストレーニ千グ 【BPM240編】（裏）`,
+          "F": `X-DAY2000\nClotho クロートー\n旋風ノ舞【天】（表）\n旋風ノ舞【天】（裏）\nチルノのパーフェクトさんすう教室（裏）\nネクロファンタジア ～ Arr.Demetori\n拝啓ドッペルゲンガー\nmint tears`
+        };
+
+        // 各難易度の内部ポイント（重み付け）
+        const genreWeights = {
+            "SS": 10, "S+": 9, "S": 8, "A+": 7, "A": 6, 
+            "B": 5, "C": 4, "D": 3, "E": 2, "F": 1
+        };
+
+        // 各段位の基準となる固定条件と、変動ロジックの設定
+        // kaStep, fukaStep は「1ポイントの難易度差に対してどれくらい条件を緩和/厳格化するか」
+        const dynamicDanSettings = {
+            "玄人": { baseSum: 15, baseKa: 50, baseFuka: 6, kaStep: 5, fukaStep: 1, baseText: "B, C, A/A+" }, // C(4) + B(5) + A(6) = 15
+            "名人": { baseSum: 18, baseKa: 30, baseFuka: 5, kaStep: 4, fukaStep: 1, baseText: "A, B, A+/S" }, // B(5) + A(6) + A+(7) = 18
+            "超人": { baseSum: 21, baseKa: 15, baseFuka: 4, kaStep: 4, fukaStep: 1, baseText: "A, A+, S" },   // A(6) + A+(7) + S(8) = 21
+            "達人": { baseSum: 27, baseKa: 8,  baseFuka: 3, kaStep: 2, fukaStep: 0.5, baseText: "S, S+/SS, SS" } // S(8) + S+(9) + SS(10) = 27
+        };
+
+        let songsWithGenre = [];
+        for (const genre in rawSongDataByGenre) {
+            if (rawSongDataByGenre.hasOwnProperty(genre)) {
+                const songTitlesText = rawSongDataByGenre[genre];
+                const titlesArray = songTitlesText.split('\n').map(title => title.trim()).filter(title => title !== ""); 
+                titlesArray.forEach(title => {
+                    songsWithGenre.push({ title: title, genre: genre });
+                });
+            }
+        }
+
+        const displays = [
+            document.getElementById('songDisplay1'),
+            document.getElementById('songDisplay2'),
+            document.getElementById('songDisplay3')
+        ];
+        const excludeContainers = [
+            document.getElementById('excludeContainer1'),
+            document.getElementById('excludeContainer2'),
+            document.getElementById('excludeContainer3')
+        ];
+        const diffSelectsElements = [
+            document.getElementById('diffSelect1'),
+            document.getElementById('diffSelect2'),
+            document.getElementById('diffSelect3')
+        ];
+        const excludeBtns = document.querySelectorAll('.exclude-song-btn');
+
+        const generateButton = document.getElementById('generateButton');
+        const genreCheckboxContainer = document.getElementById('genreCheckboxContainer');
+        const selectAllButton = document.getElementById('selectAllButton');
+        const deselectAllButton = document.getElementById('deselectAllButton');
+        const excludedSongsUl = document.getElementById('excludedSongsUl');
+        const excludedListSection = document.getElementById('excludedListSection');
+        const noExcludedSongsMessage = document.getElementById('noExcludedSongsMessage');
+        const statusMessage = document.getElementById('statusMessage');
+        const conditionsPanel = document.getElementById('conditionsPanel');
+        const conditionsTitle = document.getElementById('conditionsTitle');
+        const targetDanSelect = document.getElementById('targetDanSelect');
+        const dynamicMessage = document.getElementById('dynamicMessage');
+        const baseDifficultyDisplay = document.getElementById('baseDifficultyDisplay');
+        
+        const genreOrder = ["SS", "S+", "S", "A+", "A", "B", "C", "D", "E", "F"];
+        let excludedSongs = []; 
+        let currentDisplayedSongs = [null, null, null];
+
+        function populateGenres() {
+            const availableGenres = [...new Set(songsWithGenre.map(song => song.genre))];
+            const sortedGenres = availableGenres.sort((a, b) => {
+                const indexA = genreOrder.indexOf(a);
+                const indexB = genreOrder.indexOf(b);
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return a.localeCompare(b);
+            });
+
+            genreCheckboxContainer.innerHTML = '';
+            sortedGenres.forEach(genre => {
+                const checkboxId = `genre-${genre.replace(/\s+/g, '-').replace(/\+/g, 'plus').replace(/[♦]/g, '')}`;
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('genre-checkbox-item');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = checkboxId;
+                checkbox.value = genre;
+                checkbox.name = 'genre';
+                const label = document.createElement('label');
+                label.htmlFor = checkboxId;
+                label.textContent = genre;
+                itemDiv.appendChild(checkbox);
+                itemDiv.appendChild(label);
+                genreCheckboxContainer.appendChild(itemDiv);
+                
+                diffSelectsElements.forEach(select => {
+                    const option = document.createElement('option');
+                    option.value = genre;
+                    option.textContent = `難易度: ${genre}`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function updateExcludedListDisplay() {
+            excludedSongsUl.innerHTML = '';
+            if (excludedSongs.length === 0) {
+                noExcludedSongsMessage.style.display = 'block';
+                excludedListSection.style.display = 'none';
+            } else {
+                excludedListSection.style.display = 'block';
+                noExcludedSongsMessage.style.display = 'none';
+                excludedSongs.forEach(songTitle => {
+                    const li = document.createElement('li');
+                    const titleSpan = document.createElement('span');
+                    titleSpan.classList.add('song-title');
+                    titleSpan.textContent = songTitle;
+                    li.appendChild(titleSpan);
+                    const removeButton = document.createElement('button');
+                    removeButton.textContent = 'リストから戻す';
+                    removeButton.classList.add('remove-excluded-button');
+                    removeButton.addEventListener('click', () => {
+                        excludedSongs = excludedSongs.filter(title => title !== songTitle);
+                        updateExcludedListDisplay();
+                        clearDisplays();
+                    });
+                    li.appendChild(removeButton);
+                    excludedSongsUl.appendChild(li);
+                });
+            }
+        }
+
+        function clearDisplays() {
+            displays.forEach(display => { display.textContent = "---"; });
+            excludeContainers.forEach(container => { container.style.display = 'none'; });
+            conditionsPanel.style.display = 'none';
+            dynamicMessage.style.display = 'none';
+            currentDisplayedSongs = [null, null, null];
+            statusMessage.textContent = "";
+        }
+
+        let isRolling = false; 
+
+        generateButton.addEventListener('click', function() {
+            if (isRolling) return; 
+            statusMessage.textContent = "";
+            conditionsPanel.style.display = 'none';
+            dynamicMessage.style.display = 'none';
+
+            const selectedGenreCheckboxes = genreCheckboxContainer.querySelectorAll('input[name="genre"]:checked');
+            const globalSelectedGenres = Array.from(selectedGenreCheckboxes).map(cb => cb.value);
+
+            let slotAllowedGenres = [];
+            for(let i = 0; i < 3; i++) {
+                const selectValue = diffSelectsElements[i].value;
+                if(selectValue === 'FILTER') {
+                    if(globalSelectedGenres.length === 0) {
+                        statusMessage.textContent = `${i+1}曲目が「フィルター設定に従う」になっていますが、難易度フィルターが選択されていません。`;
+                        return;
+                    }
+                    slotAllowedGenres.push(globalSelectedGenres);
+                } else {
+                    slotAllowedGenres.push([selectValue]);
+                }
+            }
+
+            let tempExcluded = [...excludedSongs];
+            let finalSongs = [];
+            let slotPools = []; 
+
+            for(let i = 0; i < 3; i++) {
+                let pool = songsWithGenre.filter(s => slotAllowedGenres[i].includes(s.genre) && !tempExcluded.includes(s.title));
+                if(pool.length === 0) {
+                    statusMessage.textContent = `${i+1}曲目の条件に合う曲が足りません。条件（または除外リスト）を見直してください。`;
+                    clearDisplays();
+                    return;
+                }
+                slotPools.push(songsWithGenre.filter(s => slotAllowedGenres[i].includes(s.genre) && !excludedSongs.includes(s.title)));
+                let pickedIndex = Math.floor(Math.random() * pool.length);
+                let pickedSong = pool[pickedIndex];
+                finalSongs.push(pickedSong);
+                tempExcluded.push(pickedSong.title); 
+            }
+
+            isRolling = true;
+            generateButton.disabled = true; 
+            excludeContainers.forEach(container => container.style.display = 'none'); 
+            
+            displays.forEach(display => {
+                display.classList.add('rolling');
+                display.textContent = '選曲中...';
+            });
+
+            currentDisplayedSongs = [null, null, null];
+
+            let rollCount = 0;
+            const maxRolls = 20; 
+            const rollInterval = 100; 
+
+            const rollAnimation = setInterval(() => {
+                displays.forEach((display, index) => {
+                    const tempPool = slotPools[index];
+                    const tempRandomIndex = Math.floor(Math.random() * tempPool.length);
+                    display.textContent = tempPool[tempRandomIndex].title;
+                });
+
+                rollCount++;
+                if (rollCount >= maxRolls) {
+                    clearInterval(rollAnimation);
+                    
+                    for (let i = 0; i < 3; i++) {
+                        displays[i].textContent = finalSongs[i].title;
+                        currentDisplayedSongs[i] = finalSongs[i].title;
+                        displays[i].classList.remove('rolling');
+                        excludeContainers[i].style.display = 'flex';
+                    }
+
+                    // 合格条件パネルの表示更新
+                    const targetDan = targetDanSelect.value;
+                    conditionsTitle.textContent = `${targetDan} 合格条件`;
+                    
+                    if (dynamicDanSettings[targetDan]) {
+                        // 動的条件（玄人、名人、超人、達人）の算出ロジック
+                        const setting = dynamicDanSettings[targetDan];
+                        let currentSum = 0;
+                        finalSongs.forEach(song => {
+                            currentSum += (genreWeights[song.genre] || 0);
+                        });
+                        
+                        const diff = currentSum - setting.baseSum;
+                        
+                        // 下限値は「1未満（全良／フルコンボ）」とする
+                        let kaLimit = Math.max(1, setting.baseKa + Math.floor(diff * setting.kaStep));
+                        let fukaLimit = Math.max(1, setting.baseFuka + Math.floor(diff * setting.fukaStep));
+
+                        baseDifficultyDisplay.textContent = `基準: ${setting.baseText}`;
+                        document.getElementById('condGauge').textContent = "100%";
+                        document.getElementById('condKa').textContent = `${kaLimit}未満`;
+                        document.getElementById('condFuka').textContent = `${fukaLimit}未満`;
+                        
+                        if (diff > 0) {
+                            dynamicMessage.textContent = `※基準より難易度合計が高い(+${diff})ため、条件を緩和しました。`;
+                            dynamicMessage.style.display = 'block';
+                            dynamicMessage.style.color = '#be185d';
+                        } else if (diff < 0) {
+                            dynamicMessage.textContent = `※基準より難易度合計が低い(${diff})ため、条件を厳格化しました。`;
+                            dynamicMessage.style.display = 'block';
+                            dynamicMessage.style.color = '#4338ca';
+                        } else {
+                            dynamicMessage.textContent = `※基準構成と同等レベルのため、標準条件が適用されました。`;
+                            dynamicMessage.style.display = 'block';
+                            dynamicMessage.style.color = '#334155';
+                        }
+                    } else {
+                        // 動的設定がない場合（十段）
+                        baseDifficultyDisplay.textContent = "";
+                        document.getElementById('condGauge').textContent = "赤色到達";
+                        document.getElementById('condKa').textContent = "150未満";
+                        document.getElementById('condFuka').textContent = "15未満";
+                    }
+                    
+                    conditionsPanel.style.display = 'block';
+                    isRolling = false;
+                    generateButton.disabled = false; 
+                }
+            }, rollInterval);
+        });
+        
+        genreCheckboxContainer.addEventListener('change', function(event) {
+            if (event.target.type === 'checkbox') clearDisplays();
+        });
+
+        diffSelectsElements.forEach(select => { select.addEventListener('change', clearDisplays); });
+        targetDanSelect.addEventListener('change', clearDisplays);
+
+        selectAllButton.addEventListener('click', function() {
+            const checkboxes = genreCheckboxContainer.querySelectorAll('input[name="genre"]');
+            checkboxes.forEach(cb => cb.checked = true);
+            clearDisplays();
+        });
+
+        deselectAllButton.addEventListener('click', function() {
+            const checkboxes = genreCheckboxContainer.querySelectorAll('input[name="genre"]');
+            checkboxes.forEach(cb => cb.checked = false);
+            clearDisplays();
+        });
+
+        excludeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const slotIndex = parseInt(this.getAttribute('data-slot')) - 1;
+                const songToExclude = currentDisplayedSongs[slotIndex];
+                
+                if (songToExclude && !excludedSongs.includes(songToExclude)) {
+                    excludedSongs.push(songToExclude);
+                    updateExcludedListDisplay();
+                    statusMessage.textContent = `「${songToExclude}」を除外しました。再度作成してください。`;
+                    clearDisplays();
+                }
+            });
+        });
+
+        populateGenres();
+        updateExcludedListDisplay(); 
+    </script>
+</body>
+</html>
